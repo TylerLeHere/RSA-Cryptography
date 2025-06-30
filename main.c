@@ -3,8 +3,10 @@
 
 
 
-#define IntType u_int32_t
+#define IntType uint32_t
 
+
+// Take a power of two unsigned integers
 IntType power(IntType base, IntType pow) {
     if (pow == 0) {
         return 1;
@@ -17,6 +19,7 @@ IntType power(IntType base, IntType pow) {
     return result;
 }
 
+// Find the appropriate D value for the given parameters
 IntType find_d(IntType P, IntType Q, IntType E) {
     IntType num = (P-1) * (Q-1);
     int i;
@@ -25,7 +28,7 @@ IntType find_d(IntType P, IntType Q, IntType E) {
             break;
         }
     }
-    printf("i is %u \n ", i);
+    //printf("i is %u \n ", i);
 
     return (i*num + 1) / E;
 }
@@ -49,14 +52,17 @@ int main() {
     IntType D = find_d(P, Q, E); //private exponent
 
     
-    printf("D is %u \n", D);
+    //printf("D is %u \n", D);
 
+    // Define and print inputText (for report)
     IntType inputText = 7;
     printf("Input text is %u \n", inputText);
 
+    // Compute and print encrypted_text (for report)
     IntType encrypted_text = rsa_encrypt(inputText, PQ, E);
     printf("Encrypted text is %u \n", encrypted_text);
 
+    // Compute and print final recovered text, this should be the same as inputText
     IntType output = rsa_decrypt(encrypted_text, PQ, D);
     printf("Final recovered text is %u \n", output);
 }
