@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#define IntType uint32_t
+#define IntType uint64_t
 
 #define ENCRYPT rsa_modexp_encrypt
 #define DECRYPT rsa_modexp_decrypt
@@ -42,9 +42,35 @@ IntType find_d(IntType P, IntType Q, IntType E) {
       break;
     }
   }
-  // printf("i is %u \n ", i);
-
   return (i * num + 1) / E;
+}
+
+IntType gcd(IntType a, IntType b) {
+  while (b != 0) {
+    IntType temp = b;
+    b = a % b;
+    a = temp;
+  }
+  return a;
+}
+
+// Get public exponent E which is some int that
+// is Less than PQ and has no common factors
+//  with (P-1)*(Q-1)
+IntType get_public_exponent(IntType P, IntType Q) {
+  IntType PQ = (P - 1) * (Q - 1);
+  IntType e =
+      3; // Common starting point, since 2 is often not coprime for small primes
+
+  while (e < PQ) {
+    if (gcd(e, PQ) == 1) {
+      return e;
+    }
+    e += 2; // Use odd values only to skip even numbers
+  }
+
+  // I really hope this never happens
+  return 1;
 }
 
 IntType rsa_encrypt(IntType data, IntType PQ, IntType E) {
@@ -67,19 +93,21 @@ IntType rsa_modexp_decrypt(IntType data, IntType PQ, IntType D) {
 
 int main() {
 
-  IntType P = 251;
-  IntType Q = 7;
+  IntType P = 4133;
+  IntType Q = 4507;
   IntType PQ = P * Q; // modulus
 
-  IntType E = 7; // Public exponent: Less than PQ and has no common factors
-                 // with (P-1)*(Q-1)
+  IntType E =
+      get_public_exponent(P, Q); // Public exponent: Less than PQ and has no
+                                 // common factors with (P-1)*(Q-1)
+
   IntType D = find_d(P, Q, E); // private exponent
 
   printf("E = %u ,D = %u, PQ = %u \n", E, D, PQ);
 
   // Define and print inputText (for report)
   IntType inputText = 7;
-  printf("Input text is %u \n", inputText);
+  printf("INPUT TEXT is %u \n", inputText);
 
   // Compute and print encrypted_text (for report)
   IntType encrypted_text = ENCRYPT(inputText, PQ, E);
@@ -88,5 +116,5 @@ int main() {
   // Compute and print final recovered text, this should be the same as
   // inputText
   IntType output = DECRYPT(encrypted_text, PQ, D);
-  printf("Final recovered text is %u \n", output);
+  printf("FINAL TEXT IS %u \n", output);
 }
