@@ -1,120 +1,122 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#define IntType uint64_t
+#define u32 __uint32_t
+#define u64 __uint64_t
+#define R_POWER 32
 
 #define ENCRYPT rsa_modexp_encrypt
 #define DECRYPT rsa_modexp_decrypt
 
-// Take the get the modular exponentiation of two unsigned integers
-IntType mod_exp(IntType base, IntType pow, IntType mod) {
-  if (pow == 0) {
-    return base % mod;
+// Compute modular exponentiation (base^exp % mod)
+u32 mod_exp(u32 base, u32 exp, u32 mod) {
+  if (exp == 0)
+    return 1;
+
+  u64 result = 1;
+  u64 base_mod = base % mod;
+
+  for (u32 i = 0; i < exp; ++i) {
+    result = (result * base_mod) % mod;
   }
 
-  IntType result = 1;
-  for (int i = 0; i < pow; ++i) {
-    result = (result * base) % mod;
-  }
-
-  return result;
+  return (u32)result;
 }
 
-// Take a power of two unsigned integers
-IntType power(IntType base, IntType pow) {
-  if (pow == 0) {
+// RSA encryption: C = data^E mod PQ
+u32 rsa_modexp_encrypt(u32 data, u32 PQ, u32 E) { return mod_exp(data, E, PQ); }
+
+// RSA decryption: M = data^D mod PQ
+u32 rsa_modexp_decrypt(u32 data, u32 PQ, u32 D) { return mod_exp(data, D, PQ); }
+
+//------------------------------------------------------------------------------------------------------------------------
+// MONTGOMERY MUTIPLICATION SECTION
+
+// Convert to montgomery domain
+// Param x: The number to convert to montgomery space
+// Param n: The modulus that we are converting to montgomery space for
+inline u32 convert_to_montgomery(u32 x, u32 n) {
+  u64 temp_result = (u64)x << R_POWER;
+  return (u32)(temp_result % n);
+}
+
+// RSA encryption using montgomery multiplication
+u32 rsa_montgomery_encrypt(u32 data, u32 PQ, u32 E) {
+  // convert to montgomery space
+
+  return 0;
+}
+
+// RSA decryption using montgomery multiplication
+u32 rsa_montgomery_decrypt(u32 data, u32 PQ, u32 D) { return 0; }
+
+// Integer power (no modulus)
+u64 power(u32 base, u32 exp) {
+  if (exp == 0)
     return 1;
-  }
-  IntType result = 1;
-  for (int i = 0; i < pow; ++i) {
+
+  u64 result = 1;
+  for (u32 i = 0; i < exp; ++i) {
     result *= base;
   }
 
   return result;
 }
 
-// Find the appropriate D value for the given parameters
-IntType find_d(IntType P, IntType Q, IntType E) {
-  IntType num = (P - 1) * (Q - 1);
-  int i;
-  for (i = 0;; ++i) {
-    if ((i * num + 1) % E == 0) {
-      break;
-    }
-  }
-  return (i * num + 1) / E;
-}
-
-IntType gcd(IntType a, IntType b) {
+// Greatest common divisor (Euclidean algorithm)
+u32 gcd(u32 a, u32 b) {
   while (b != 0) {
-    IntType temp = b;
+    u32 temp = b;
     b = a % b;
     a = temp;
   }
   return a;
 }
 
-// Get public exponent E which is some int that
-// is Less than PQ and has no common factors
-//  with (P-1)*(Q-1)
-IntType get_public_exponent(IntType P, IntType Q) {
-  IntType PQ = (P - 1) * (Q - 1);
-  IntType e =
-      3; // Common starting point, since 2 is often not coprime for small primes
+// Get public exponent E such that gcd(E, (P-1)(Q-1)) == 1
+u32 get_public_exponent(u32 P, u32 Q) {
+  u32 PQ_mult = (P - 1) * (Q - 1);
+  u32 e = 3; // Start at 3 (common practice)
 
-  while (e < PQ) {
-    if (gcd(e, PQ) == 1) {
+  while (e < PQ_mult) {
+    if (gcd(e, PQ_mult) == 1) {
       return e;
     }
-    e += 2; // Use odd values only to skip even numbers
+    e += 2; // skip even numbers
   }
 
-  // I really hope this never happens
-  return 1;
+  return 1; // fallback (shouldn't happen)
 }
 
-IntType rsa_encrypt(IntType data, IntType PQ, IntType E) {
-  // C = data^E mod PQ
-  return power(data, E) % (PQ);
-}
+// Compute private exponent D such that (D * E) % ((P-1)*(Q-1)) == 1
+u32 find_d(u32 P, u32 Q, u32 E) {
+  u64 totient = (u64)(P - 1) * (Q - 1);
 
-IntType rsa_decrypt(IntType data, IntType PQ, IntType D) {
-  // result = data^D mod PQ
-  return power(data, D) % (PQ);
-}
-
-IntType rsa_modexp_encrypt(IntType data, IntType PQ, IntType E) {
-  return mod_exp(data, E, PQ);
-}
-
-IntType rsa_modexp_decrypt(IntType data, IntType PQ, IntType D) {
-  return mod_exp(data, D, PQ);
+  for (u64 i = 1;; ++i) {
+    if ((i * totient + 1) % E == 0) {
+      return (u32)((i * totient + 1) / E);
+    }
+  }
 }
 
 int main() {
+  u32 P = 7919;
+  u32 Q = 6287;
+  u32 PQ = P * Q;
 
-  IntType P = 4133;
-  IntType Q = 4507;
-  IntType PQ = P * Q; // modulus
+  u32 E = get_public_exponent(P, Q);
+  u32 D = find_d(P, Q, E);
 
-  IntType E =
-      get_public_exponent(P, Q); // Public exponent: Less than PQ and has no
-                                 // common factors with (P-1)*(Q-1)
+  printf("E = %u, D = %u, PQ = %u\n", E, D, PQ);
 
-  IntType D = find_d(P, Q, E); // private exponent
+  u32 inputText = 788;
+  printf("INPUT TEXT is %u\n", inputText);
 
-  printf("E = %u ,D = %u, PQ = %u \n", E, D, PQ);
+  u32 encrypted_text = ENCRYPT(inputText, PQ, E);
+  printf("Encrypted text is %u\n", encrypted_text);
 
-  // Define and print inputText (for report)
-  IntType inputText = 7;
-  printf("INPUT TEXT is %u \n", inputText);
+  u32 output = DECRYPT(encrypted_text, PQ, D);
+  printf("FINAL TEXT IS %u\n", output);
 
-  // Compute and print encrypted_text (for report)
-  IntType encrypted_text = ENCRYPT(inputText, PQ, E);
-  printf("Encrypted text is %u \n", encrypted_text);
-
-  // Compute and print final recovered text, this should be the same as
-  // inputText
-  IntType output = DECRYPT(encrypted_text, PQ, D);
-  printf("FINAL TEXT IS %u \n", output);
+  return 0;
 }
