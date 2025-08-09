@@ -1,0 +1,1 @@
+/Users/tylerle/.swiftly/bin/clang -g -arch arm64 -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/rsa.dir/main.c.o CMakeFiles/rsa.dir/montgomery.c.o CMakeFiles/rsa.dir/modular_exponentiation.c.o -o rsa

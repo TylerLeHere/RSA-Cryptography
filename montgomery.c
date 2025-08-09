@@ -35,9 +35,12 @@ u32 rsa_montgomery_decrypt(u32 data, u32 PQ, u32 D) {
   return montgomery_transform(result, PQ);
 }
 
+// Corrected Montgomery reduction
 u32 montgomery_reduce(u64 x, u32 n_prime, u32 n) {
-  u32 q = (u32)x * n_prime; // q = x * n' mod r
-  u64 m = (u64)q * n;       // m = q * n
-  u32 y = (x - m) >> 32;    // y = (x - m) / r
-  return x < m ? y + n : y; // if y < 0, add n to make it be in the [0, n) range
+  u32 q = (u32)(x * n_prime);
+  u64 m = (u64)q * n;
+  u64 t = (x + m) >> R_POWER;
+
+  return (u32)(t >= n ? t - n : t);
 }
+
