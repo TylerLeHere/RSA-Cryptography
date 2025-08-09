@@ -6,8 +6,9 @@
 #define u32 __uint32_t
 #define u64 __uint64_t
 #define R_POWER 32
+#define R_POWER_LOG 5 // log2(32) for determining N'
 
-#define ENCRYPT rsa_modexp_encrypt
-#define DECRYPT rsa_modexp_decrypt
+#define ENCRYPT rsa_montgomery_encrypt
+#define DECRYPT rsa_montgomery_decrypt
 
 #endif
