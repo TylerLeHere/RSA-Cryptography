@@ -1,3 +1,3 @@
-project (rsa LANGUAGES C)
+project(rsa LANGUAGES C)
 
-add_executable(rsa main.c)
+add_executable(rsa main.c montgomery.c modular_exponentiation.c)
