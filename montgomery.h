@@ -8,9 +8,9 @@ static inline u32 montgomery_transform(u32 x, u32 n) {
   u64 temp_result = (u64)x << R_POWER;
   return (u32)(temp_result % n);
 }
-
+/*
 static inline u32 find_n_prime(u32 n) {
-  u64 R = 1ULL << R_POWER;  // R = 2^32
+  u64 R = 1ULL << R_POWER; // R = 2^32
 
   int64_t r_old = R;
   int64_t r = n;
@@ -37,10 +37,22 @@ static inline u32 find_n_prime(u32 n) {
     t_old = temp;
   }
 
-  u32 n_inverse = (u32)((t_old % (int64_t)R + (int64_t)R) % (int64_t)R);
-  return (u32)((R - n_inverse) & 0xFFFFFFFFU);
-}
 
+
+u32 n_inverse = (u32)((t_old % (int64_t)R + (int64_t)R) % (int64_t)R);
+return (u32)((R - n_inverse) & 0xFFFFFFFFU);
+}
+*/
+static inline u32 find_n_prime(u32 n) {
+
+  u32 nr = 1;
+
+  for (int i = 0; i < 5; i++) {
+    nr *= 2 - n * nr;
+  }
+
+  return nr;
+}
 // RSA encryption using montgomery multiplication
 u32 rsa_montgomery_encrypt(u32 data, u32 PQ, u32 E);
 
