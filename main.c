@@ -51,16 +51,16 @@ int main() {
   u32 E = get_public_exponent(P, Q);
   u32 D = find_d(P, Q, E);
 
-  printf("E = %u, D = %u, PQ = %u\n", E, D, PQ);
+  DEBUG("E = %u, D = %u, PQ = %u\n", E, D, PQ);
 
   u32 inputText = 788;
-  printf("INPUT TEXT is %u\n", inputText);
+  DEBUG("INPUT TEXT is %u\n", inputText);
 
   u32 encrypted_text = ENCRYPT(inputText, PQ, E);
-  printf("Encrypted text is %u\n", encrypted_text);
+  DEBUG("Encrypted text is %u\n", encrypted_text);
 
   u32 output = DECRYPT(encrypted_text, PQ, D);
-  printf("FINAL TEXT IS %u\n", output);
+  DEBUG("FINAL TEXT IS %u\n", output);
 
   return 0;
 }

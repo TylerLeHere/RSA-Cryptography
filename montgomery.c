@@ -1,6 +1,8 @@
 #include "montgomery.h"
 #include <stdio.h>
 
+
+
 // Corrected Montgomery reduction
 u32 montgomery_reduce(u64 x, u32 n_prime, u32 n) {
   u32 q = (u32)(x * n_prime); // q = (x * n') mod R , the mod R is done by
@@ -36,47 +38,51 @@ u32 montgomery_exp(u32 base_mont, u32 exp, u32 n_prime, u32 n) {
   return result;
 }
 
+u32 montgomery_exp_lut_optimized(u32 base_mont, u32 exp, u32 n_prime, u32 n) {
+  return 0;
+}
+
 // RSA encryption using Montgomery multiplication
 u32 rsa_montgomery_encrypt(u32 data, u32 PQ, u32 E) {
-  printf("Montgomery Encrypt: data=%u, PQ=%u, E=%u\n", data, PQ, E);
+  DEBUG("Montgomery Encrypt: data=%u, PQ=%u, E=%u\n", data, PQ, E);
 
   // Convert to Montgomery space
   u32 data_mont = montgomery_transform(data, PQ);
-  printf("  data in Montgomery form: %u\n", data_mont);
+  DEBUG("  data in Montgomery form: %u\n", data_mont);
 
   // Find n'
   u32 n_prime = find_n_prime(PQ);
-  printf("  n_prime: %u\n", n_prime);
+  DEBUG("  n_prime: %u\n", n_prime);
 
   // Perform exponentiation in Montgomery domain
   u32 result_mont = montgomery_exp(data_mont, E, n_prime, PQ);
-  printf("  result in Montgomery form: %u\n", result_mont);
+  DEBUG("  result in Montgomery form: %u\n", result_mont);
 
   // Convert back from Montgomery space
   u32 final_result = montgomery_reduce(result_mont, n_prime, PQ);
-  printf("  final result: %u\n", final_result);
+  DEBUG("  final result: %u\n", final_result);
 
   return final_result;
 }
 
 // RSA decryption using Montgomery multiplication
 u32 rsa_montgomery_decrypt(u32 data, u32 PQ, u32 D) {
-  printf("Montgomery Decrypt: data=%u, PQ=%u, D=%u\n", data, PQ, D);
+  DEBUG("Montgomery Decrypt: data=%u, PQ=%u, D=%u\n", data, PQ, D);
 
   // Convert to Montgomery space
   u32 data_mont = montgomery_transform(data, PQ);
-  printf("  data in Montgomery form: %u\n", data_mont);
+  DEBUG("  data in Montgomery form: %u\n", data_mont);
 
   u32 n_prime = find_n_prime(PQ);
-  printf("  n_prime: %u\n", n_prime);
+  DEBUG("  n_prime: %u\n", n_prime);
 
   // Perform exponentiation in Montgomery domain
   u32 result_mont = montgomery_exp(data_mont, D, n_prime, PQ);
-  printf("  result in Montgomery form: %u\n", result_mont);
+  DEBUG("  result in Montgomery form: %u\n", result_mont);
 
   // Convert back from Montgomery space
   u32 final_result = montgomery_reduce(result_mont, n_prime, PQ);
-  printf("  final result: %u\n", final_result);
+  DEBUG("  final result: %u\n", final_result);
 
   return final_result;
 }
