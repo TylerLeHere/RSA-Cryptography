@@ -1,17 +1,15 @@
 #include "montgomery.h"
 #include <stdio.h>
 
-
-
 // Corrected Montgomery reduction
 u32 montgomery_reduce(u64 x, u32 n_prime, u32 n) {
   u32 q = (u32)(x * n_prime); // q = (x * n') mod R , the mod R is done by
-                              // reducing to u32 with unsigned integer overflow
+                              // reducing to u32 with intentional unsigned
+                              // integer overflow
   u64 m = (u64)q * n;         // m = q * n
-  u64 t = (x + m) >> R_POWER; // t = (x + m) / R
+  u32 t = (x + m) >> R_POWER; // t = (x + m) / R
 
-  // If t >= n, subtract n to ensure result is in [0, n)
-  return (u32)(t >= n ? t - n : t);
+  return (u32)t;
 }
 
 // Binary exponentiation in Montgomery domain
