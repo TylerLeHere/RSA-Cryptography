@@ -2,14 +2,18 @@
 #include <stdio.h>
 
 // Corrected Montgomery reduction
-u32 montgomery_reduce(u64 x, u32 n_prime, u32 n) {
+ u32 montgomery_reduce(u64 x, u32 n_prime, u32 n) {
+  asm volatile("# reduce start");
   u32 q = (u32)(x * n_prime); // q = (x * n') mod R , the mod R is done by
                               // reducing to u32 with intentional unsigned
                               // integer overflow
+
   u64 m = (u64)q * n;         // m = q * n
   u32 t = (x + m) >> R_POWER; // t = (x + m) / R
 
   return (u32)t;
+
+  asm volatile("# reduce end");
 }
 
 // Binary exponentiation in Montgomery domain
@@ -59,6 +63,7 @@ u32 rsa_montgomery_encrypt(u32 data, u32 PQ, u32 E) {
   // Convert back from Montgomery space
   u32 final_result = montgomery_reduce(result_mont, n_prime, PQ);
   DEBUG("  final result: %u\n", final_result);
+  asm volatile("# reduce end");
 
   return final_result;
 }
