@@ -7,7 +7,16 @@
 #define u64 __uint64_t
 #define R_POWER 32
 
-#define ENCRYPT rsa_modexp_encrypt
-#define DECRYPT rsa_modexp_decrypt
+#define ENCRYPT rsa_montgomery_encrypt
+#define DECRYPT rsa_montgomery_decrypt
+
+// toggle debug comments off and on by commenting out the below line
+// #define DEBUG_BUILD
+
+#ifdef DEBUG_BUILD
+#define DEBUG(...) printf(__VA_ARGS__)
+#else
+#define DEBUG(...) (void)0
+#endif
 
 #endif
