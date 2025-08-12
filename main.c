@@ -1,9 +1,12 @@
 #include "config.h"
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "modular_exponentiation.h"
 #include "montgomery.h"
+
+#define LUT_ENABLED
 
 //------------------------------------------------------------------------------------------------------------------------
 
@@ -33,6 +36,7 @@ u32 get_public_exponent(u32 P, u32 Q) {
 }
 
 // Compute private exponent D such that (D * E) % ((P-1)*(Q-1)) == 1
+// This can be precomputed it so it is fine if inneficient
 u32 find_d(u32 P, u32 Q, u32 E) {
   u64 totient = (u64)(P - 1) * (Q - 1);
 
@@ -43,24 +47,27 @@ u32 find_d(u32 P, u32 Q, u32 E) {
   }
 }
 
-int main() {
+int main(int argc, char **argv) {
+  int num_iters = (argc == 2) ? atoi(argv[1]) : 1000000;
+
   u32 P = 7919;
   u32 Q = 6287;
+  u32 inputText = 788;
   u32 PQ = P * Q;
 
   u32 E = get_public_exponent(P, Q);
   u32 D = find_d(P, Q, E);
 
-  printf("E = %u, D = %u, PQ = %u\n", E, D, PQ);
+  for (int i = 0; i < num_iters; ++i) {
+    DEBUG("E = %u, D = %u, PQ = %u\n", E, D, PQ);
 
-  u32 inputText = 788;
-  printf("INPUT TEXT is %u\n", inputText);
+    DEBUG("INPUT TEXT is %u\n", inputText);
 
-  u32 encrypted_text = ENCRYPT(inputText, PQ, E);
-  printf("Encrypted text is %u\n", encrypted_text);
+    u32 encrypted_text = ENCRYPT(inputText, PQ, E);
+    DEBUG("Encrypted text is %u\n", encrypted_text);
 
-  u32 output = DECRYPT(encrypted_text, PQ, D);
-  printf("FINAL TEXT IS %u\n", output);
-
+    u32 output = DECRYPT(encrypted_text, PQ, D);
+    DEBUG("FINAL TEXT IS %u\n", output);
+  }
   return 0;
 }

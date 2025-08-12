@@ -3,35 +3,38 @@
 
 #include "config.h"
 
-// Convert to montgomery domain
-// Param x: The number to convert to montgomery space
-// Param n: The modulus that we are converting to montgomery space for
-static inline u32 convert_to_montgomery(u32 x, u32 n) {
+// Converts a number to montgomery space
+static inline u32 montgomery_transform(u32 x, u32 n) {
   // x_bar = x * R mod N
   u64 temp_result = (u64)x << R_POWER;
   return (u32)(temp_result % n);
 }
 
-static inline u32 find_n_prime(u32 N) {
-  // this is really inefficient rn, theres definitely WAYYY better ways to do
-  // this Just trying to get it functional before I optimize
-  int x = 1;
-  while (1) {
-    if (N * x % (((u64)1 << R_POWER)) ==
-        1) { // mod R literally defeats the whole point of montgomery mult,
-             // should be using bit ops
-      return x;
+// find n' s.t   r*(r^-1) + n*n' = 1
+// based off Dusse and Kaliski jr for uneven n
+static inline u32 find_n_prime(u32 n) {
+  // y = 1
+  // for i = 2 to R_POWER_LOG do
+  //  if (n*y mod 2i) then
+  //    y = y+ 2^(i-1)
+  // return r -y
+  u32 y = 1;
+  for (int i = 2; i <= R_POWER; ++i) {
+    if ((((u64)n * y) & ((1ULL << i) - 1)) != 1) {
+      y += 1U << (i - 1);
     }
   }
-
-  return 0;
+  return (u32)(((1ULL << R_POWER) - y));
 }
 
 // RSA encryption using montgomery multiplication
-// C = data^E mod PQ
 u32 rsa_montgomery_encrypt(u32 data, u32 PQ, u32 E);
 
 // RSA decryption using montgomery multiplication
 u32 rsa_montgomery_decrypt(u32 data, u32 PQ, u32 D);
+
+// Montgomery reduction function
+u32 montgomery_reduce(u64 x, u32 n_prime, u32 n);
+
 
 #endif
