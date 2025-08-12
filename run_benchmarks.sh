@@ -5,7 +5,7 @@ set -e
 mkdir -p benchmark
 
 # Compile with O3 - runtime
-gcc -O3 main.c montgomery.c modular_exponentiation.c -o benchmark/prog_runtime
+gcc -O3 -g main.c montgomery.c modular_exponentiation.c -o benchmark/prog_runtime
 
 # Compile with O3 and debug for cachegrind
 gcc -O3 -g main.c montgomery.c modular_exponentiation.c -o benchmark/prog_cachegrind
@@ -17,18 +17,22 @@ echo "==========================" >> "$REPORT_FILE"
 echo "" >> "$REPORT_FILE"
 
 echo "Running perf stat for runtime and instructions..."
-perf stat -e instructions,cycles,cache-references,cache-misses -o benchmark/perf_stat.txt \
-    ./benchmark/prog_runtime 1000000
+perf stat -r 100 -o benchmark/perf_stat.txt \
+    ./benchmark/prog_runtime 100000
 
 echo "Recording perf for top function time (perf record)..."
 perf record -o benchmark/perf.data ./benchmark/prog_runtime 1000000
 
+
+
 echo "Generating perf report (top 30 functions)..."
-perf report --stdio -n --sort comm,dso,symbol -i benchmark/perf.data | head -n 50 > benchmark/perf_report.txt
+perf report --stdio -n --sort comm,dso,symbol -i benchmark/perf.data | head -n 80 > benchmark/perf_report.txt
 
 echo "Running valgrind cachegrind for cache misses (10,000 iterations)..."
 CACHEGRIND_OUTPUT=$(valgrind --tool=cachegrind ./benchmark/prog_cachegrind 10000 2>&1)
 
+
+valgrind --tool=cachegrind --cachegrind-out-file=benchmark/cachegrind.out ./benchmark/prog_cachegrind 10000
 
 echo "Annotating cachegrind output..."
 cg_annotate benchmark/cachegrind.out > benchmark/cachegrind_report.txt
