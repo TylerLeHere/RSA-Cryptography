@@ -18,12 +18,15 @@ static inline u32 find_n_prime(u32 n) {
   //  if (n*y mod 2i) then
   //    y = y+ 2^(i-1)
   // return r -y
+  asm volatile("# find_n_prime start");
   u32 y = 1;
   for (int i = 2; i <= R_POWER; ++i) {
     if ((((u64)n * y) & ((1ULL << i) - 1)) != 1) {
       y += 1U << (i - 1);
     }
   }
+
+  asm volatile("# find_n_prime end");
   return (u32)(((1ULL << R_POWER) - y));
 }
 

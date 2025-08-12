@@ -22,8 +22,8 @@ u32 montgomery_reduce(u64 T, u32 n_prime, u32 n) {
   u64 mN = (u64)q * n;         // m = q * n
   u32 t = (T + mN) >> R_POWER; // t = Tx + mN) / R
 
-  return (u32)t;
   asm volatile("# reduce end");
+  return (u32)t;
 }
 
 // Binary exponentiation in Montgomery domain
