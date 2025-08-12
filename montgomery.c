@@ -1,6 +1,17 @@
 #include "montgomery.h"
 #include <stdio.h>
 
+void fill_LUT(u32 *LUT, u32 data, u32 PQ) {
+
+  u32 base_mont = montgomery_transform(data, PQ);
+  u32 n_prime = find_n_prime(PQ);
+
+  for (int i = 0; i < R_POWER; ++i) {
+    LUT[i] = base_mont;
+    base_mont = montgomery_reduce((u64)base_mont * base_mont, n_prime, PQ);
+  }
+}
+
 // Corrected Montgomery reduction
 u32 montgomery_reduce(u64 T, u32 n_prime, u32 n) {
   asm volatile("# reduce start");
@@ -54,11 +65,11 @@ u32 montgomery_exp_lut_optimized(register u32 base_mont, register u32 exp,
     ++count;
     exp >>= 1;
   }
-  return 0;
+  return result;
 }
 
 // RSA encryption using Montgomery multiplication
-u32 rsa_montgomery_encrypt(u32 data, u32 PQ, u32 E, u32 *LUT) {
+u32 rsa_montgomery_encrypt(u32 data, u32 PQ, u32 E) {
   DEBUG("Montgomery Encrypt: data=%u, PQ=%u, E=%u\n", data, PQ, E);
 
   // Convert to Montgomery space
@@ -69,11 +80,17 @@ u32 rsa_montgomery_encrypt(u32 data, u32 PQ, u32 E, u32 *LUT) {
   u32 n_prime = find_n_prime(PQ);
   DEBUG("  n_prime: %u\n", n_prime);
 
-  // Perform exponentiation in Montgomery domain
+// Perform exponentiation in Montgomery domain
+// Perform exponentiation in Montgomery domain
+#ifndef LUT_ENABLED
   u32 result_mont = montgomery_exp(data_mont, E, n_prime, PQ);
+#else
+  u32 LUT[32];
+  fill_LUT(LUT, data, PQ);
+  u32 result_mont =
+      montgomery_exp_lut_optimized(data_mont, E, n_prime, PQ, LUT);
+#endif
 
-  // ju32 result_mont =
-  //   montgomery_exp_lut_optimized(data_mont, E, n_prime, PQ, LUT);
   DEBUG("  result in Montgomery form: %u\n", result_mont);
 
   // Convert back from Montgomery space
@@ -85,7 +102,7 @@ u32 rsa_montgomery_encrypt(u32 data, u32 PQ, u32 E, u32 *LUT) {
 }
 
 // RSA decryption using Montgomery multiplication
-u32 rsa_montgomery_decrypt(u32 data, u32 PQ, u32 D, u32 *LUT) {
+u32 rsa_montgomery_decrypt(u32 data, u32 PQ, u32 D) {
   DEBUG("Montgomery Decrypt: data=%u, PQ=%u, D=%u\n", data, PQ, D);
 
   // Convert to Montgomery space
@@ -95,10 +112,15 @@ u32 rsa_montgomery_decrypt(u32 data, u32 PQ, u32 D, u32 *LUT) {
   u32 n_prime = find_n_prime(PQ);
   DEBUG("  n_prime: %u\n", n_prime);
 
-  // Perform exponentiation in Montgomery domain
+// Perform exponentiation in Montgomery domain
+#ifndef LUT_ENABLED
   u32 result_mont = montgomery_exp(data_mont, D, n_prime, PQ);
-  //  u32 result_mont =
-  // montgomery_exp_lut_optimized(data_mont, D, n_prime, PQ, LUT);
+#else
+  u32 LUT[32];
+  fill_LUT(LUT, data, PQ);
+  u32 result_mont =
+      montgomery_exp_lut_optimized(data_mont, D, n_prime, PQ, LUT);
+#endif
 
   DEBUG("  result in Montgomery form: %u\n", result_mont);
 

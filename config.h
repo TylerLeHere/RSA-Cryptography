@@ -6,6 +6,7 @@
 #define u32 __uint32_t
 #define u64 __uint64_t
 #define R_POWER 32
+#define R_POWER_LOG 5 // log2(R_POWER)
 
 #define ENCRYPT rsa_montgomery_encrypt
 #define DECRYPT rsa_montgomery_decrypt
@@ -18,5 +19,8 @@
 #else
 #define DEBUG(...) (void)0
 #endif
+
+
+//#define LUT_ENABLED
 
 #endif

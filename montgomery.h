@@ -28,12 +28,13 @@ static inline u32 find_n_prime(u32 n) {
 }
 
 // RSA encryption using montgomery multiplication
-u32 rsa_montgomery_encrypt(u32 data, u32 PQ, u32 E, u32 *LUT);
+u32 rsa_montgomery_encrypt(u32 data, u32 PQ, u32 E);
 
 // RSA decryption using montgomery multiplication
-u32 rsa_montgomery_decrypt(u32 data, u32 PQ, u32 D, u32 *LUT);
+u32 rsa_montgomery_decrypt(u32 data, u32 PQ, u32 D);
 
 // Montgomery reduction function
 u32 montgomery_reduce(u64 x, u32 n_prime, u32 n);
+
 
 #endif
